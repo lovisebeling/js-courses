@@ -1,20 +1,9 @@
-const hobbies = ['reading', 'gaming', 'hiking', 'cooking'];
+let message = ''
+let mark = 18
 
-for (let i = 0; i < hobbies.length; i++) {
-    console.log(hobbies[i]);
-}
+if (mark >= 15) {
+    message = 'Tres satisfaisant'}
+else{
+    message = 'correct'}
 
-for (const hobby of hobbies) {
-    console.log(hobby);
-}
-
-hobbies.forEach((hobby) => {
-    console.log(hobby);
-});
-
-
-const car = {
-    brand: 'Ferrari',
-    model: 'Purosangue',
-    color: 'red',
-    year: 2023}
+message = (mark >= 15) ? 'Tres satisfaisant' : 'correct';
