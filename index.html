@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,46 +22,62 @@
 
         <div class="status">
             <span class="status-dot"></span>
-            API CONNECTÉE
+            API ONLINE
         </div>
     </header>
 
     <main class="container">
         <section class="intro">
             <p class="eyebrow">DATABASE // 001</p>
-            <h2>Explore le monde Pokémon<span>.</span></h2>
+            <h2>Explore the Pokémon world<span>.</span></h2>
             <p class="intro-text">
-                Découvre les espèces, leurs statistiques et leurs caractéristiques.
+                Discover Pokémon species, stats and characteristics.
             </p>
         </section>
 
+        <form id="search-form" class="search-form">
+            <input
+                id="search-input"
+                type="search"
+                placeholder="Search by name or Pokédex number..."
+                aria-label="Search Pokémon by name or number"
+            >
+            <button type="submit" class="search-button">Search</button>
+            <button type="button" id="clear-search" class="page-button">
+                Show all
+            </button>
+        </form>
+
         <div class="toolbar">
-            <p id="page-number">Chargement...</p>
-            <p id="result-count">Pokémon : --</p>
+            <p id="page-number">Loading...</p>
+            <p id="result-count">Pokémon: --</p>
         </div>
 
-        <section id="pokemon-list" class="pokemon-grid"
-                 aria-label="Liste des Pokémon">
-            <p class="loading">Initialisation de la base de données...</p>
+        <section
+            id="pokemon-list"
+            class="pokemon-grid"
+            aria-label="Pokémon list"
+        >
+            <p class="loading">Initializing database...</p>
         </section>
 
         <p id="error-message" class="error-message" role="alert"></p>
 
         <nav class="pagination" aria-label="Pagination">
             <button id="previous" class="page-button" disabled>
-                ← Précédent
+                ← Previous
             </button>
 
             <span id="page-indicator">01</span>
 
             <button id="next" class="page-button" disabled>
-                Suivant →
+                Next →
             </button>
         </nav>
     </main>
 
     <footer>
-        <p>POKÉDEX PERSONNEL · PROPULSÉ PAR POKÉAPI</p>
+        <p>PERSONAL POKÉDEX · POWERED BY POKÉAPI</p>
     </footer>
 </body>
 </html>
