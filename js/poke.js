@@ -1,10 +1,14 @@
+const pokemon_url = 'https://pokeapi.co/api/v2/pokemon?limit=20&offset=0';
 
-const ditto_url = 'https://pokeapi.co/api/v2/pokemon/ditto';
-
-fetch(ditto_url)
+fetch(pokemon_url)
     .then(response => response.json())
-    .then(json_response => console.log(json_response))
-    .then(ditto => {
-        document.querySelector('#height').textContent = ditto.height;})
+    .then(data => {
+        console.log(data);
 
-        console.log(json_response.height)
+        data.results.forEach(pokemon => {
+            console.log(pokemon.name);
+        });
+    })
+    .catch(error => {
+        console.error('Erreur lors de la récupération des Pokémon :', error);
+    });
