@@ -27,12 +27,23 @@ function load_pokemon() {
 
             // On affiche les Pokémon reçus
             data.results.forEach((pokemon, index) => {
-                const pokemon_element = document.createElement('p');
+                const pokemon_element = document.createElement('div');
 
                 const pokemon_number = offset + index + 1;
 
                 pokemon_element.textContent =
                     `#${String(pokemon_number).padStart(3, '0')} - ${pokemon.name}`;
+
+                fetch(pokemon.url)
+                    .then(response => response.json())
+                    .then(pokemon_data => {
+                        const image = document.createElement('img');
+
+                        image.src = pokemon_data.sprites.front_default;
+                        image.alt = pokemon.name;
+
+                        pokemon_element.appendChild(image);
+                    });
 
                 pokemon_list.appendChild(pokemon_element);
             });
