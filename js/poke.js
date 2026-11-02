@@ -1,4 +1,5 @@
-const pokemon_url = 'https://pokeapi.co/api/v2/pokemon?limit=20&offset=0';
+
+const pokemon_url = 'https://pokeapi.co/api/v2/pokemon?limit=2000&offset=0';
 
 fetch(pokemon_url)
     .then(response => response.json())
