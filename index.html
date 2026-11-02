@@ -1,19 +1,67 @@
+
 <!DOCTYPE html>
-<html lang="eng">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Pokédex</title>
-    <script src="./js/poke.js" defer></script>
+
+    <title>Pokédex | National Database</title>
+
     <link rel="stylesheet" href="./style.css">
+    <script src="./js/poke.js" defer></script>
 </head>
 <body>
-    <h1>Pokidexu</h1>
+    <header class="site-header">
+        <div class="brand">
+            <span class="brand-icon">◈</span>
+            <div>
+                <h1>POKÉDEX</h1>
+                <p>NATIONAL DATABASE</p>
+            </div>
+        </div>
 
-    <div id="pokemon-list"></div>
+        <div class="status">
+            <span class="status-dot"></span>
+            API CONNECTÉE
+        </div>
+    </header>
 
-    <button id="previous" disabled>Précédent</button>
-    <span id="page-number">Page 1</span>
-    <button id="next">Suivant</button>
+    <main class="container">
+        <section class="intro">
+            <p class="eyebrow">DATABASE // 001</p>
+            <h2>Explore le monde Pokémon<span>.</span></h2>
+            <p class="intro-text">
+                Découvre les espèces, leurs statistiques et leurs caractéristiques.
+            </p>
+        </section>
+
+        <div class="toolbar">
+            <p id="page-number">Chargement...</p>
+            <p id="result-count">Pokémon : --</p>
+        </div>
+
+        <section id="pokemon-list" class="pokemon-grid"
+                 aria-label="Liste des Pokémon">
+            <p class="loading">Initialisation de la base de données...</p>
+        </section>
+
+        <p id="error-message" class="error-message" role="alert"></p>
+
+        <nav class="pagination" aria-label="Pagination">
+            <button id="previous" class="page-button" disabled>
+                ← Précédent
+            </button>
+
+            <span id="page-indicator">01</span>
+
+            <button id="next" class="page-button" disabled>
+                Suivant →
+            </button>
+        </nav>
+    </main>
+
+    <footer>
+        <p>POKÉDEX PERSONNEL · PROPULSÉ PAR POKÉAPI</p>
+    </footer>
 </body>
 </html>
