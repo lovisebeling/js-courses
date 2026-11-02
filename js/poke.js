@@ -142,16 +142,23 @@ function createPokemonCard(pokemon) {
     const types = document.createElement('div');
     types.className = 'type-list';
 
-    pokemon.types.forEach(typeInfo => {
-        const badge = document.createElement('span');
-        badge.className = 'type-badge';
 
-        const typeName = typeInfo.type.name;
-        badge.textContent =
-            typeName.charAt(0).toUpperCase() + typeName.slice(1);
+pokemon.types.forEach(typeInfo => {
+    const badge = document.createElement('span');
+    badge.className = 'type-badge';
 
-        types.appendChild(badge);
-    });
+    const typeName = typeInfo.type.name;
+
+    // Give each type tag its own color.
+    const badgeColor = TYPE_COLORS[typeName] ?? '#65d8ff';
+    badge.style.setProperty('--badge-color', badgeColor);
+
+    badge.textContent =
+        typeName.charAt(0).toUpperCase() + typeName.slice(1);
+
+    types.appendChild(badge);
+});
+
 
     const details = document.createElement('div');
     details.className = 'pokemon-details';
