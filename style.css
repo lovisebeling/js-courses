@@ -309,3 +309,124 @@ footer {
         padding: 11px;
     }
 }
+
+
+/* Search bar */
+
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.search-form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 13px 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+}
+
+.search-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px #65d8ff18;
+}
+
+.search-button {
+    padding: 12px 20px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: #65d8ff18;
+    color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    background: #65d8ff30;
+}
+
+/* Type-based card colors */
+
+.pokemon-card {
+    --type-color: #65d8ff;
+    border-top: 2px solid var(--type-color);
+}
+
+.pokemon-card:hover {
+    border-color: var(--type-color);
+    box-shadow: 0 0 22px color-mix(
+        in srgb, var(--type-color) 15%, transparent
+    );
+}
+
+.pokemon-number,
+.pokemon-card .stat-value {
+    color: var(--type-color);
+}
+
+.pokemon-card .pokemon-image {
+    filter: drop-shadow(
+        0 0 14px color-mix(in srgb, var(--type-color) 25%, transparent)
+    );
+}
+
+.type-badge {
+    background: color-mix(in srgb, var(--type-color) 15%, #121b2d);
+    border: 1px solid color-mix(in srgb, var(--type-color) 40%, transparent);
+}
+
+/* Stat bars */
+
+.stat-item {
+    min-width: 0;
+}
+
+.stat-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.stat-heading .stat-label {
+    font-size: 9px;
+}
+
+.stat-heading .stat-value {
+    margin: 0;
+    font-size: 11px;
+}
+
+.stat-bar {
+    height: 5px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #263954;
+}
+
+.stat-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: var(--type-color);
+    box-shadow: 0 0 8px var(--type-color);
+    transition: width 350ms ease;
+}
+
+@media (max-width: 650px) {
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-form input,
+    .search-button,
+    .search-form .page-button {
+        width: 100%;
+    }
+}
