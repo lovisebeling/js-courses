@@ -430,3 +430,32 @@ footer {
         width: 100%;
     }
 }
+
+
+.pokemon-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    margin-top: 18px;
+}
+
+.pokemon-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pokemon-card .pokemon-image {
+    align-self: center;
+    flex-shrink: 0;
+}
+
+@media (min-width: 651px) {
+    .pokemon-card {
+        gap: 12px;
+    }
+
+    .pokemon-image {
+        width: 34%;
+        flex-basis: 34%;
+    }
+}
