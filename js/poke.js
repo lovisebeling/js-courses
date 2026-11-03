@@ -1,6 +1,12 @@
 
 const API_URL = 'https://pokeapi.co/api/v2/pokemon';
 
+const SPECIES_URL = 'https://pokeapi.co/api/v2/pokemon-species';
+const EVOLUTION_CHAIN_URL = 'https://pokeapi.co/api/v2/evolution-chain';
+
+let orderedPokemonIds = null;
+let speciesListCache = null;
+
 const POKEMON_PER_PAGE = 9;
 
 // The first type determines the card's accent color.
@@ -53,6 +59,10 @@ const clearSearchButton = document.querySelector('#clear-search');
 const firstPageButton = document.querySelector('#first-page');
 const lastPageButton = document.querySelector('#last-page');
 
+const groupFamiliesCheckbox = document.querySelector('#group-families');
+
+let groupByFamilies = false;
+
 function getRegion(id) {
     if (id <= 151) return 'Kanto';
     if (id <= 251) return 'Johto';
@@ -65,6 +75,90 @@ function getRegion(id) {
     if (id <= 1025) return 'Paldea';
 
     return 'Other';
+}
+
+async function buildEvolutionOrder() {
+    if (orderedPokemonIds) return orderedPokemonIds;
+
+    const response = await fetch(`${SPECIES_URL}?limit=2000`);
+
+    if (!response.ok) {
+        throw new Error('Unable to load Pokémon species.');
+    }
+
+    const data = await response.json();
+    speciesListCache = data.results;
+
+    totalPokemon = data.results.length;
+
+    // Map each species name to its National Pokédex number.
+    const speciesIdByName = new Map();
+
+    data.results.forEach(species => {
+        const id = Number(
+            species.url.replace(/\/$/, '').split('/').pop()
+        );
+
+        speciesIdByName.set(species.name, id);
+    });
+
+    // Keep only one URL per evolution chain.
+    const chainUrls = [
+        ...new Set(
+            data.results.map(species => species.evolution_chain.url)
+        )
+    ];
+
+    const families = [];
+
+    function flattenEvolutionChain(chain, family) {
+        const id = speciesIdByName.get(chain.species.name);
+
+        if (id !== undefined) {
+            family.push(id);
+        }
+
+        chain.evolves_to.forEach(evolution => {
+            flattenEvolutionChain(evolution, family);
+        });
+    }
+
+    // Retrieve each evolution family.
+    for (const url of chainUrls) {
+        const chainResponse = await fetch(url);
+
+        if (!chainResponse.ok) {
+            throw new Error('Unable to load evolution chains.');
+        }
+
+        const chainData = await chainResponse.json();
+        const family = [];
+
+        flattenEvolutionChain(chainData.chain, family);
+
+        if (family.length > 0) {
+            families.push(family);
+        }
+    }
+
+    // Order families by their earliest National Pokédex number.
+    families.sort((a, b) => Math.min(...a) - Math.min(...b));
+
+    // Flatten the families into one ordered list.
+    const ids = families.flat();
+
+    // Add any Pokémon not included in a chain, without duplicates.
+    const includedIds = new Set(ids);
+
+    for (let id = 1; id <= totalPokemon; id++) {
+        if (!includedIds.has(id)) {
+            ids.push(id);
+        }
+    }
+
+    orderedPokemonIds = ids;
+
+    return orderedPokemonIds;
 }
 
 function createDetail(label, value) {
@@ -238,26 +332,44 @@ async function loadPokemon() {
 
     const loading = document.createElement('p');
     loading.className = 'loading';
-    loading.textContent = 'Loading Pokémon...';
+    loading.textContent = groupByFamilies
+        ? 'Organizing evolution families...'
+        : 'Loading Pokémon...';
+
     pokemonList.appendChild(loading);
 
     try {
-        const response = await fetch(
-            `${API_URL}?limit=${POKEMON_PER_PAGE}&offset=${offset}`
-        );
+        let pokemonUrls = [];
+        let pokemonIds = [];
 
-        if (!response.ok) {
-            throw new Error('Failed to retrieve the Pokémon list.');
+        if (groupByFamilies) {
+            const orderedIds = await buildEvolutionOrder();
+
+            pokemonIds = orderedIds.slice(
+                offset,
+                offset + POKEMON_PER_PAGE
+            );
+
+            pokemonUrls = pokemonIds.map(
+                id => `${API_URL}/${id}`
+            );
+        } else {
+            const response = await fetch(
+                `${API_URL}?limit=${POKEMON_PER_PAGE}&offset=${offset}`
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to retrieve the Pokémon list.');
+            }
+
+            const data = await response.json();
+
+            totalPokemon = data.count;
+            pokemonUrls = data.results.map(pokemon => pokemon.url);
         }
 
-        const data = await response.json();
-        totalPokemon = data.count;
-
-        // Fetch the nine detailed records concurrently.
         const pokemonDetails = await Promise.all(
-            data.results.map(pokemon =>
-                fetchPokemonDetails(pokemon.url)
-            )
+            pokemonUrls.map(url => fetchPokemonDetails(url))
         );
 
         pokemonList.replaceChildren();
@@ -268,18 +380,25 @@ async function loadPokemon() {
 
         isSearchMode = false;
 
-        pageNumber.textContent =
-            `PAGE ${Math.floor(offset / POKEMON_PER_PAGE) + 1} / ` +
-            `${Math.ceil(totalPokemon / POKEMON_PER_PAGE)}`;
+        const currentPage = Math.floor(offset / POKEMON_PER_PAGE) + 1;
+        const totalPages = Math.ceil(totalPokemon / POKEMON_PER_PAGE);
 
-        resultCount.textContent =
-            `Pokémon: ${offset + 1}–${offset + pokemonDetails.length} / ${totalPokemon}`;
+        pageNumber.textContent = `PAGE ${currentPage} / ${totalPages}`;
+
+        const firstId = pokemonDetails[0]?.id ?? 0;
+        const lastId = pokemonDetails[pokemonDetails.length - 1]?.id ?? 0;
+
+        resultCount.textContent = groupByFamilies
+            ? `Pokémon: ${offset + 1}–${offset + pokemonDetails.length} / ${totalPokemon}`
+            : `Pokémon: ${firstId}–${lastId} / ${totalPokemon}`;
 
         updatePagination();
 
     } catch (error) {
         console.error(error);
+
         pokemonList.replaceChildren();
+
         errorMessage.textContent =
             'Unable to load Pokémon. Check your connection and try again.';
 
@@ -419,6 +538,19 @@ lastPageButton.addEventListener('click', () => {
 
     offset = (totalPages - 1) * POKEMON_PER_PAGE;
     loadPokemon();
+});
+
+groupFamiliesCheckbox.addEventListener('change', async () => {
+    if (isLoading) {
+        groupFamiliesCheckbox.checked = groupByFamilies;
+        return;
+    }
+
+    groupByFamilies = groupFamiliesCheckbox.checked;
+    offset = 0;
+    isSearchMode = false;
+
+    await loadPokemon();
 });
 
 loadPokemon();
