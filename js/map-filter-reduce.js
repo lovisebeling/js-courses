@@ -11,4 +11,4 @@ console.log(users.map(user => user.name)) // ['Alice', 'Bob']
 
 const prices = ['10.68€', '52.3€', '11.2€'];
 
-console.log(prices.map(price => parseFloat(price) * 0.85))
+console.log(prices.map(price => Math.round(parseFloat(price) * 0.85 )))
