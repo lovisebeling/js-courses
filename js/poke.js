@@ -83,31 +83,45 @@ async function buildEvolutionOrder() {
     const response = await fetch(`${SPECIES_URL}?limit=2000`);
 
     if (!response.ok) {
-        throw new Error('Unable to load Pokémon species.');
+        throw new Error(`Species list error: ${response.status}`);
     }
 
     const data = await response.json();
-    speciesListCache = data.results;
+    totalPokemon = data.count;
 
-    totalPokemon = data.results.length;
+    const speciesDetails = [];
 
-    // Map each species name to its National Pokédex number.
-    const speciesIdByName = new Map();
+    // Fetch species details in small batches.
+    for (let i = 0; i < data.results.length; i += 40) {
+        const batch = data.results.slice(i, i + 40);
 
-    data.results.forEach(species => {
-        const id = Number(
-            species.url.replace(/\/$/, '').split('/').pop()
+        const details = await Promise.all(
+            batch.map(async species => {
+                const result = await fetch(species.url);
+
+                if (!result.ok) {
+                    throw new Error(
+                        `Species error (${species.name}): ${result.status}`
+                    );
+                }
+
+                return result.json();
+            })
         );
 
-        speciesIdByName.set(species.name, id);
-    });
+        speciesDetails.push(...details);
+    }
 
-    // Keep only one URL per evolution chain.
-    const chainUrls = [
-        ...new Set(
-            data.results.map(species => species.evolution_chain.url)
-        )
-    ];
+    const speciesIdByName = new Map();
+    const chainUrls = new Set();
+
+    speciesDetails.forEach(species => {
+        speciesIdByName.set(species.name, species.id);
+
+        if (species.evolution_chain?.url) {
+            chainUrls.add(species.evolution_chain.url);
+        }
+    });
 
     const families = [];
 
@@ -123,31 +137,26 @@ async function buildEvolutionOrder() {
         });
     }
 
-    // Retrieve each evolution family.
     for (const url of chainUrls) {
-        const chainResponse = await fetch(url);
+        const result = await fetch(url);
 
-        if (!chainResponse.ok) {
-            throw new Error('Unable to load evolution chains.');
+        if (!result.ok) {
+            throw new Error(`Evolution chain error: ${result.status}`);
         }
 
-        const chainData = await chainResponse.json();
+        const data = await result.json();
         const family = [];
 
-        flattenEvolutionChain(chainData.chain, family);
+        flattenEvolutionChain(data.chain, family);
 
         if (family.length > 0) {
             families.push(family);
         }
     }
 
-    // Order families by their earliest National Pokédex number.
     families.sort((a, b) => Math.min(...a) - Math.min(...b));
 
-    // Flatten the families into one ordered list.
     const ids = families.flat();
-
-    // Add any Pokémon not included in a chain, without duplicates.
     const includedIds = new Set(ids);
 
     for (let id = 1; id <= totalPokemon; id++) {
