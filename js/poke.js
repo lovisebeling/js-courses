@@ -50,6 +50,8 @@ const errorMessage = document.querySelector('#error-message');
 const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input');
 const clearSearchButton = document.querySelector('#clear-search');
+const firstPageButton = document.querySelector('#first-page');
+const lastPageButton = document.querySelector('#last-page');
 
 function getRegion(id) {
     if (id <= 151) return 'Kanto';
@@ -209,6 +211,9 @@ function updatePagination() {
     previousButton.disabled = isSearchMode || offset === 0;
     nextButton.disabled =
         isSearchMode || offset + POKEMON_PER_PAGE >= totalPokemon;
+
+    firstPageButton.disabled = isSearchMode || currentPage === 1;
+    lastPageButton.disabled = isSearchMode || currentPage === totalPages;
 }
 
 async function fetchPokemonDetails(url) {
@@ -299,6 +304,8 @@ async function searchPokemon(query) {
     isLoading = true;
     previousButton.disabled = true;
     nextButton.disabled = true;
+    firstPageButton.disabled = true;
+    lastPageButton.disabled = true;
 
     pokemonList.replaceChildren();
     errorMessage.textContent = '';
@@ -342,6 +349,8 @@ async function searchPokemon(query) {
         isLoading = false;
         previousButton.disabled = true;
         nextButton.disabled = true;
+        firstPageButton.disabled = true;
+        lastPageButton.disabled = true;
     }
 }
 
@@ -393,6 +402,22 @@ previousButton.addEventListener('click', () => {
     if (isLoading || offset === 0) return;
 
     offset -= POKEMON_PER_PAGE;
+    loadPokemon();
+});
+
+firstPageButton.addEventListener('click', () => {
+    if (isLoading || isSearchMode || offset === 0) return;
+
+    offset = 0;
+    loadPokemon();
+});
+
+lastPageButton.addEventListener('click', () => {
+    if (isLoading || isSearchMode) return;
+
+    const totalPages = Math.ceil(totalPokemon / POKEMON_PER_PAGE);
+
+    offset = (totalPages - 1) * POKEMON_PER_PAGE;
     loadPokemon();
 });
 
