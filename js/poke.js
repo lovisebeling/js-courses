@@ -219,85 +219,217 @@ function createStatBar(stat) {
     return item;
 }
 
-function createPokemonCard(pokemon) {
-    const card = document.createElement('article');
-    card.className = 'pokemon-card';
+function getNationalDexId(pokemon) {
+    const match = pokemon.species?.url?.match(/pokemon-species\/(\d+)\/?$/);
+    return match ? Number(match[1]) : pokemon.id;
+}
 
+function formatPokemonName(name) {
+    return name
+        .split('-')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+}
+
+function updatePokemonCardForm(card, pokemon, nationalId, formIndex, formCount) {
     const firstType = pokemon.types[0]?.type.name ?? 'normal';
     const typeColor = TYPE_COLORS[firstType] ?? '#65d8ff';
 
     card.style.setProperty('--type-color', typeColor);
+
+    card.querySelector('.pokemon-number').textContent =
+        `NO. ${String(nationalId).padStart(3, '0')}`;
+
+    card.querySelector('.pokemon-name').textContent =
+        formatPokemonName(pokemon.name);
+
+    card.querySelector('.region').textContent = getRegion(nationalId);
+
+    const types = card.querySelector('.type-list');
+    types.replaceChildren();
+
+    pokemon.types.forEach(typeInfo => {
+        const badge = document.createElement('span');
+        badge.className = 'type-badge';
+
+        const typeName = typeInfo.type.name;
+        const badgeColor = TYPE_COLORS[typeName] ?? '#65d8ff';
+
+        badge.style.setProperty('--badge-color', badgeColor);
+        badge.textContent = typeName.charAt(0).toUpperCase() + typeName.slice(1);
+        types.appendChild(badge);
+    });
+
+    const details = card.querySelector('.pokemon-details');
+    details.replaceChildren(
+        createDetail('HEIGHT', `${(pokemon.height / 10).toFixed(1)} m`),
+        createDetail('WEIGHT', `${(pokemon.weight / 10).toFixed(1)} kg`)
+    );
+
+    const stats = card.querySelector('.pokemon-stats');
+    stats.replaceChildren();
+
+    pokemon.stats.forEach(stat => {
+        stats.appendChild(createStatBar(stat));
+    });
+
+    const image = card.querySelector('.pokemon-image');
+    image.src =
+        pokemon.sprites.other?.['official-artwork']?.front_default
+        || pokemon.sprites.front_default
+        || '';
+    image.alt = `Artwork of ${formatPokemonName(pokemon.name)}`;
+
+    const counter = card.querySelector('.form-counter');
+    if (counter) {
+        counter.textContent = `${formIndex + 1} / ${formCount}`;
+    }
+}
+
+async function setupAlternateForms(pokemon, card) {
+    try {
+        if (!pokemon.species?.url) return;
+
+        const response = await fetch(pokemon.species.url);
+        if (!response.ok) return;
+
+        const species = await response.json();
+        const nationalId = species.id ?? getNationalDexId(pokemon);
+        // Keep the national Pokédex number even when the selected form has its own API ID.
+        card.querySelector('.pokemon-number').textContent =
+            `NO. ${String(nationalId).padStart(3, '0')}`;
+        card.querySelector('.region').textContent = getRegion(nationalId);
+
+        const varieties = [...(species.varieties ?? [])]
+            .sort((a, b) => Number(b.is_default) - Number(a.is_default));
+
+        // Species with only one variety do not need navigation arrows.
+        if (varieties.length <= 1) return;
+
+        const artwork = card.querySelector('.pokemon-artwork');
+        const previous = card.querySelector('.form-arrow-previous');
+        const next = card.querySelector('.form-arrow-next');
+        const counter = card.querySelector('.form-counter');
+
+        artwork.classList.add('has-alternate-forms');
+        previous.hidden = false;
+        next.hidden = false;
+        counter.hidden = false;
+
+        let currentIndex = Math.max(
+            0,
+            varieties.findIndex(item => item.pokemon.name === pokemon.name)
+        );
+        let isChangingForm = false;
+
+        const showForm = async index => {
+            if (isChangingForm) return;
+            isChangingForm = true;
+            previous.disabled = true;
+            next.disabled = true;
+
+            try {
+                const selected = varieties[index];
+                let selectedPokemon;
+
+                if (selected.pokemon.name === pokemon.name) {
+                    selectedPokemon = pokemon;
+                } else {
+                    selectedPokemon = await fetchPokemonDetails(selected.pokemon.url);
+                }
+
+                currentIndex = index;
+                updatePokemonCardForm(
+                    card,
+                    selectedPokemon,
+                    nationalId,
+                    currentIndex,
+                    varieties.length
+                );
+            } catch (error) {
+                console.error('Unable to load this Pokémon form:', error);
+            } finally {
+                isChangingForm = false;
+                previous.disabled = false;
+                next.disabled = false;
+            }
+        };
+
+        counter.textContent = `${currentIndex + 1} / ${varieties.length}`;
+
+        previous.addEventListener('click', () => {
+            showForm((currentIndex - 1 + varieties.length) % varieties.length);
+        });
+
+        next.addEventListener('click', () => {
+            showForm((currentIndex + 1) % varieties.length);
+        });
+    } catch (error) {
+        // Alternate-form navigation is optional; keep the normal card working.
+        console.warn('Unable to check alternate forms:', error);
+    }
+}
+
+function createPokemonCard(pokemon) {
+    const card = document.createElement('article');
+    card.className = 'pokemon-card';
 
     const info = document.createElement('div');
     info.className = 'pokemon-info';
 
     const number = document.createElement('span');
     number.className = 'pokemon-number';
-    number.textContent = `NO. ${String(pokemon.id).padStart(3, '0')}`;
 
     const name = document.createElement('h3');
     name.className = 'pokemon-name';
-    name.textContent =
-        pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1);
 
     const region = document.createElement('p');
     region.className = 'region';
-    region.textContent = getRegion(pokemon.id);
 
     const types = document.createElement('div');
     types.className = 'type-list';
 
-
-pokemon.types.forEach(typeInfo => {
-    const badge = document.createElement('span');
-    badge.className = 'type-badge';
-
-    const typeName = typeInfo.type.name;
-
-    // Give each type tag its own color.
-    const badgeColor = TYPE_COLORS[typeName] ?? '#65d8ff';
-    badge.style.setProperty('--badge-color', badgeColor);
-
-    badge.textContent =
-        typeName.charAt(0).toUpperCase() + typeName.slice(1);
-
-    types.appendChild(badge);
-});
-
-
     const details = document.createElement('div');
     details.className = 'pokemon-details';
 
-    details.append(
-        createDetail('HEIGHT', `${(pokemon.height / 10).toFixed(1)} m`),
-        createDetail('WEIGHT', `${(pokemon.weight / 10).toFixed(1)} kg`)
-    );
-
-    // Display every base stat with a visual bar.
     const stats = document.createElement('div');
     stats.className = 'pokemon-stats';
 
-    pokemon.stats.forEach(stat => {
-        stats.appendChild(createStatBar(stat));
-    });
-
     info.append(number, name, region, types, details, stats);
+
+    const artwork = document.createElement('div');
+    artwork.className = 'pokemon-artwork';
+
+    const previous = document.createElement('button');
+    previous.type = 'button';
+    previous.className = 'form-arrow form-arrow-previous';
+    previous.setAttribute('aria-label', 'Previous Pokémon form');
+    previous.textContent = '‹';
+    previous.hidden = true;
 
     const image = document.createElement('img');
     image.className = 'pokemon-image';
-    image.alt = `Artwork of ${pokemon.name}`;
+    image.alt = `Artwork of ${formatPokemonName(pokemon.name)}`;
     image.loading = 'lazy';
 
-    image.src =
-        pokemon.sprites.other['official-artwork']?.front_default
-        || pokemon.sprites.front_default
-        || '';
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'form-arrow form-arrow-next';
+    next.setAttribute('aria-label', 'Next Pokémon form');
+    next.textContent = '›';
+    next.hidden = true;
 
-    if (!image.src) {
-        image.alt = `Image unavailable for ${pokemon.name}`;
-    }
+    const counter = document.createElement('span');
+    counter.className = 'form-counter';
+    counter.textContent = '';
+    counter.hidden = true;
 
-    card.append(info, image);
+    artwork.append(previous, image, next, counter);
+    card.append(info, artwork);
+
+    const nationalId = getNationalDexId(pokemon);
+    updatePokemonCardForm(card, pokemon, nationalId, 0, 1);
+    setupAlternateForms(pokemon, card);
 
     return card;
 }

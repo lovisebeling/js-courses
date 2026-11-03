@@ -527,3 +527,103 @@ footer {
     color: var(--muted);
     font-size: 12px;
 }
+
+/* Alternate-form navigation on Pokémon cards */
+.pokemon-artwork {
+    position: relative;
+    display: flex;
+    flex: 0 0 34%;
+    align-items: center;
+    justify-content: center;
+    width: 34%;
+    max-width: 170px;
+    min-width: 100px;
+}
+
+.pokemon-artwork .pokemon-image {
+    display: block;
+    width: 100%;
+    max-width: none;
+    flex: 0 0 100%;
+}
+
+.form-arrow {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 27px;
+    height: 34px;
+    padding: 0;
+    transform: translateY(-50%);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: #090d18dd;
+    color: var(--text);
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 180ms ease, border-color 180ms ease,
+                background 180ms ease;
+}
+
+.pokemon-artwork.has-alternate-forms .form-arrow {
+    opacity: 0.85;
+}
+
+.pokemon-artwork.has-alternate-forms:hover .form-arrow,
+.pokemon-artwork.has-alternate-forms:focus-within .form-arrow {
+    opacity: 1;
+}
+
+.form-arrow:hover:not(:disabled) {
+    border-color: var(--type-color);
+    background: var(--surface-hover);
+}
+
+.form-arrow:disabled {
+    opacity: 0.4;
+    cursor: wait;
+}
+
+.form-arrow-previous {
+    left: 0;
+}
+
+.form-arrow-next {
+    right: 0;
+}
+
+.form-counter {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 7px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: #090d18dd;
+    color: var(--text);
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.form-arrow[hidden],
+.form-counter[hidden] {
+    display: none;
+}
+
+@media (max-width: 650px) {
+    .pokemon-artwork {
+        flex-basis: 38%;
+        width: 38%;
+        min-width: 90px;
+    }
+
+    .form-arrow {
+        width: 24px;
+        height: 31px;
+    }
+}
