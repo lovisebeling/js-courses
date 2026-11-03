@@ -202,7 +202,9 @@ function updatePagination() {
     const totalPages = Math.ceil(totalPokemon / POKEMON_PER_PAGE);
 
     pageNumber.textContent = `PAGE ${currentPage} / ${totalPages}`;
-    pageIndicator.textContent = String(currentPage).padStart(2, '0');
+    pageIndicator.value = currentPage;
+    pageIndicator.max = totalPages;
+    pageIndicator.disabled = isSearchMode;
 
     previousButton.disabled = isSearchMode || offset === 0;
     nextButton.disabled =
@@ -318,8 +320,8 @@ async function searchPokemon(query) {
         isSearchMode = true;
 
         pageNumber.textContent = 'SEARCH RESULT';
-        pageIndicator.textContent =
-            String(pokemon.id).padStart(3, '0');
+        pageIndicator.value = '';
+        pageIndicator.disabled = true;
 
         resultCount.textContent = 'Pokémon found: 1';
 
@@ -332,7 +334,8 @@ async function searchPokemon(query) {
 
         isSearchMode = true;
         pageNumber.textContent = 'NO RESULTS';
-        pageIndicator.textContent = '--';
+        pageIndicator.value = '';
+        pageIndicator.disabled = true;
         resultCount.textContent = 'Pokémon found: 0';
 
     } finally {
@@ -353,6 +356,27 @@ clearSearchButton.addEventListener('click', () => {
     searchInput.value = '';
     isSearchMode = false;
     offset = 0;
+    loadPokemon();
+});
+
+
+pageIndicator.addEventListener('change', () => {
+    if (isLoading || isSearchMode) return;
+
+    const totalPages = Math.ceil(totalPokemon / POKEMON_PER_PAGE);
+    const requestedPage = Number(pageIndicator.value);
+
+    // Ignore invalid page numbers.
+    if (!Number.isInteger(requestedPage) || requestedPage < 1) {
+        pageIndicator.value = Math.floor(offset / POKEMON_PER_PAGE) + 1;
+        return;
+    }
+
+    // Keep the requested page within the available range.
+    const targetPage = Math.min(requestedPage, totalPages);
+
+    offset = (targetPage - 1) * POKEMON_PER_PAGE;
+
     loadPokemon();
 });
 

@@ -257,9 +257,27 @@ footer {
     cursor: not-allowed;
 }
 
-#page-indicator {
+.page-input {
+    width: 75px;
+    padding: 10px 6px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
     color: var(--accent);
+    font: inherit;
     font-weight: 700;
+    text-align: center;
+    outline: none;
+}
+
+.page-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px #65d8ff18;
+}
+
+.page-input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 footer {
