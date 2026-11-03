@@ -63,18 +63,34 @@
 
         <p id="error-message" class="error-message" role="alert"></p>
 
+
         <nav class="pagination" aria-label="Pagination">
+            <button id="first-page" class="page-button" disabled>
+                « First
+            </button>
+
             <button id="previous" class="page-button" disabled>
                 ← Previous
             </button>
 
             <input
-            type="number"
-            id="page-indicator"
-            class="page-input"
-            min="1"
-            value="1"
-            aria-label="Go to page"
+                type="number"
+                id="page-indicator"
+                class="page-input"
+                min="1"
+                value="1"
+                aria-label="Go to page"
+            >
+
+            <button id="next" class="page-button" disabled>
+                Next →
+            </button>
+
+            <button id="last-page" class="page-button" disabled>
+                Last »
+            </button>
+        </nav>
+
 >
 
             <button id="next" class="page-button" disabled>
