@@ -12,6 +12,9 @@ for (let i = 0; i < books.length; i++) {
 }
 console.log(text.slice(0, -2));
 
+let titles = books.map(book => book.title).join(", ").toUpperCase();
+console.log(titles);
+
  text = '';
 for (let i = 0; i < books.length; i++) {
     if (books[i].pages < 300){
@@ -20,6 +23,9 @@ for (let i = 0; i < books.length; i++) {
 }
 console.log(text);
 
+pages = books.filter(book => book.pages < 300).map(book => `${book.title} - ${book.pages} pages`).join("\n");
+console.log(pages);
+
 let price = 0;
 for (let i = 0; i < books.length; i++) {
     if (books[i].price < 300){
@@ -27,3 +33,6 @@ for (let i = 0; i < books.length; i++) {
     }
 }
 console.log(`Total: ${price}euros`);
+
+total = books.reduce((acc, book) => acc + book.price, 0);
+console.log(`Total: ${total}euros`);
